@@ -1,0 +1,19 @@
+% THESE ARE COMMENTS %
+% I was not quite understanding   how   the printing works so I just used a placeholder "print" %
+
+
+numberOne is 7.
+numberTwo is 
+13.
+print numberOne.
+print numberTwo.
+% should 7 then 13 %
+
+boolOne is T.
+boolTwo is F.
+print boolOne.
+print boolTwo.
+% should print true then false %
+
+numberThree is 3321.
+print numberThree.
