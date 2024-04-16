@@ -1,6 +1,6 @@
 
 
-%var6 is "Goodbye".%
+var6 is "Goodbye".
 
 var2 is T AND F.
 var3 is 13 add 7.

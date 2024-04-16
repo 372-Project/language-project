@@ -37,20 +37,21 @@ def createLines(input):
 
             string_token = item  # Remove the opening quotation mark
 
-            if item[-2] == '"':
+            if item[-2] == '"':  # Checking for single words
                 in_string = False
                 cur.append(string_token[:-1])
                 string_token = ""
 
 
             
-        elif in_string:
+        elif in_string:  # Checking for strings that are more than one word 
             if item[-2] == '"':
                 in_string = False
-                string_token += item[:-1]  # Remove the closing quotation mark
+                string_token += item[:-1]  # Remove the closing period
                 cur.append(string_token)
                 string_token = ""
-            else:
+            else:  #  Happens when there is a word in the middle of a string of words 
+                   #  EX: "Hello good world", good would be added here
                 string_token += " " + item
         else:
             if item.endswith("."):
@@ -61,7 +62,8 @@ def createLines(input):
                 cur.append(item)
 
     if cur:
-        result.append(cur)
+        # result.append(cur)
+        raise Exception("Error, missing closing expression '.'")
 
     return result
 
@@ -173,9 +175,16 @@ def main():
     filename_full = filename + ".txt"
     file_contents = openFile(filename_full)
     contents_list = file_contents.split()
+    print("\nChecking contents")
+    #for content in contents_list:
+    #    print(content)
+    #print("Done checking contents\n")
     source_code = removeComments(contents_list)
     #print("AFTER COMMENTS "+ str(source_code))
-
+    #print("\nChecking contents")
+    #for item in source_code:
+    #    print(item)
+    #print("Done checking contents\n")
 
 
     source_code = createLines(source_code)
