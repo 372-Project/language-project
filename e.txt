@@ -1,0 +1,17 @@
+
+
+%var6 is "Goodbye".%
+
+var2 is T AND F.
+var3 is 13 add 7.
+var4 is 19.
+var5 is F.
+
+
+
+%var is "Hello World".%
+
+
+%print var.%
+print var2.
+print var3. 
