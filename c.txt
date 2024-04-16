@@ -1,0 +1,11 @@
+
+
+%var6 is "Goodbye".
+var9 is "Hello World".%
+
+%var1 is 5.
+var2 is 7.%
+
+given var1 lessThan var2 do! var3 is var1 add var2.!.
+
+given var1 moreThan var2 do! var3 is var1 add var2.! instead! print F.!.

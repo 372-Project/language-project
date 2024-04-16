@@ -41,23 +41,21 @@ def createLines(input):
                 in_string = False
                 cur.append(string_token[:-1])
                 result.append(cur)
-                #print()
-                #print(cur)
-                #print()
+                print()
+                print(cur)
+                print()
                 cur = []
                 string_token = ""
 
-
-            
         elif in_string:  # Checking for strings that are more than one word 
             if item[-2] == '"':
                 in_string = False
                 string_token += " " + item[:-1]  # Remove the closing period
                 cur.append(string_token)
                 result.append(cur)
-                #print()
-                #print(cur)
-                #print()
+                print()
+                print(cur)
+                print()
                 cur = []
                 string_token = ""
             else:  #  Happens when there is a word in the middle of a string of words 
@@ -66,16 +64,16 @@ def createLines(input):
         else:
             if item.endswith("."):
                 cur.append(item[:-1])  # Remove the period
-                #print()
-                #print(cur)
-                #print()
+                print()
+                print(cur)
+                print()
                 result.append(cur)
                 cur = []
             else:
                 cur.append(item)
 
     if cur:
-        # result.append(cur)
+        #result.append(cur)
         raise Exception("Error, missing closing expression '.'")
 
     return result
@@ -116,6 +114,8 @@ def typeLines(lines):
             result[line_number] = [line, "ASSIGNMENT"]
         elif line[0] == "print":
             result[line_number] = [line, "PRINT"]
+        elif line[0] == "given":
+            result[line_number] = [line, "CONDITIONAL"]
         line_number += 1
     return result
 
@@ -134,7 +134,60 @@ def translate(java_file, source_code_dict):
             java_line = f"\t\tSystem.out.println({expression});\n"
             print(java_line)
             java_file.write(java_line)
+        elif line_type == "CONDITIONAL":
+            #expression = processed conditional
+            #print("Parsing expression!!!")
+            #print(expression)
+            #print()
+            print("Conditional")
+            print(line)
+            print()
 
+            expression = translate_expression(line[1:])
+            java_line = "\t\tif (" + str(expression) + ") {" + "\n"
+            print(java_line)
+            java_file.write(java_line)
+
+            # call create lines on the rest
+            rest = createLines(line[len(expression)+2:])
+            # make a dict
+            dict = typeLines(rest)
+            # call translate again
+            translate(java_file, dict)
+            # need to just make a line_type of INSTEAD and a case for it in translate
+            java_line = "}\n"
+            java_file.write(java_line)
+
+# probably going to become obsolete
+def parse_conditional(line):
+    result = []
+    cur = []
+    conditional_expr = False
+    string_token = ""
+    result.append("if (")
+    for item in line:
+        # handles nested if statements
+        if item == "given":
+            result.append(parse_conditional(line[line.index(item):]))
+            break
+        # handles end of conditional expression
+        elif item == "do!":
+            # need to process the statement to see if there are multiple strung together
+            result.append(cur)
+            result.append(") {")
+            cur = []
+        elif item == "instead!":
+            result.append("} else {")
+            cur = []
+        else:
+            if item.endswith(".!"):
+                cur.append(item[:-1])
+                result.append(cur)
+            else:
+                cur.append(item)
+    result.append("}")
+    return result
+        
 def determine_var_type(expression):
     print("ENTER DETERMINE VAR TYPE")
     if expression[0] == '"' and expression[-1] == '"':
@@ -169,6 +222,11 @@ def translate_expression(tokens):
                 return str(left_operand)+ " && " +str(right_operand)
             else:
                 return str(left_operand)+ " || " +str(right_operand)
+        elif operator in ("moreThan", "lessThan"):
+            if operator == "moreThan":
+                return str(left_operand)+ " > " +str(right_operand)
+            else:
+                return str(left_operand)+ " < " +str(right_operand) 
     else:
         raise ValueError(f"Invalid expression: {tokens}")
 

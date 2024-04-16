@@ -9,7 +9,6 @@ var4 is 19.
 var5 is F.
 
 
-
 %var is "Hello World".%
 
 
