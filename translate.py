@@ -40,6 +40,11 @@ def createLines(input):
             if item[-2] == '"':  # Checking for single words
                 in_string = False
                 cur.append(string_token[:-1])
+                result.append(cur)
+                #print()
+                #print(cur)
+                #print()
+                cur = []
                 string_token = ""
 
 
@@ -47,8 +52,13 @@ def createLines(input):
         elif in_string:  # Checking for strings that are more than one word 
             if item[-2] == '"':
                 in_string = False
-                string_token += item[:-1]  # Remove the closing period
+                string_token += " " + item[:-1]  # Remove the closing period
                 cur.append(string_token)
+                result.append(cur)
+                #print()
+                #print(cur)
+                #print()
+                cur = []
                 string_token = ""
             else:  #  Happens when there is a word in the middle of a string of words 
                    #  EX: "Hello good world", good would be added here
@@ -56,6 +66,9 @@ def createLines(input):
         else:
             if item.endswith("."):
                 cur.append(item[:-1])  # Remove the period
+                #print()
+                #print(cur)
+                #print()
                 result.append(cur)
                 cur = []
             else:

@@ -1,6 +1,7 @@
 
 
 var6 is "Goodbye".
+var9 is "Hello World".
 
 var2 is T AND F.
 var3 is 13 add 7.
