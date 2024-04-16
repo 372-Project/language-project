@@ -1,3 +1,5 @@
+varList = []
+
 def openFile(filename):
     try:
         with open(filename, 'r') as file:
@@ -26,9 +28,14 @@ def removeComments(contents):
 
 # turns into lines of code
 def createLines(input):
+    #print("CREATING LINES")
+    #print(input)
     result = []
     cur = []
     in_string = False
+    in_loop = False
+    in_do = False
+    in_instead = False
     string_token = ""
 
     for item in input:
@@ -61,6 +68,44 @@ def createLines(input):
             else:  #  Happens when there is a word in the middle of a string of words 
                    #  EX: "Hello good world", good would be added here
                 string_token += " " + item
+
+        elif item == "perform!":  # Makes it so that what is happening in a loop is not processed until later
+            in_loop = True
+            cur.append(item)
+            
+        elif in_loop:
+            cur.append(item)
+            if item == "loop!":
+                result.append(cur)
+                cur = []
+                in_loop = False
+
+        elif item == "do!":  # Makes it so that what is happening in a do is not processed until later
+            in_do = True
+            cur.append(item)
+            
+        elif in_do:
+            if item.endswith("!"):
+                cur.append(item[:-1])
+                result.append(cur)
+                cur = []
+                in_do = False
+            else:
+                cur.append(item)
+
+        elif item == "instead!":  # Makes it so that what is happening in an instead is not processed until later
+            in_instead = True
+            cur.append(item)
+            
+        elif in_instead:
+            if item.endswith("!"):
+                cur.append(item[:-1])
+                result.append(cur)
+                cur = []
+                in_instead = False
+            else:
+                cur.append(item)
+
         else:
             if item.endswith("."):
                 cur.append(item[:-1])  # Remove the period
@@ -69,11 +114,12 @@ def createLines(input):
                 print()
                 result.append(cur)
                 cur = []
+            elif item == "loop!":
+                pass
             else:
                 cur.append(item)
 
     if cur:
-        #result.append(cur)
         raise Exception("Error, missing closing expression '.'")
 
     return result
@@ -110,97 +156,119 @@ def typeLines(lines):
     line_number = 0
     result = {}
     for line in lines:
-        if line[1] == "is":
-            result[line_number] = [line, "ASSIGNMENT"]
-        elif line[0] == "print":
+        print(line)
+        if line[0] == "print":
             result[line_number] = [line, "PRINT"]
         elif line[0] == "given":
             result[line_number] = [line, "CONDITIONAL"]
+        elif line[0] == "instead!":
+            result[line_number] = [line, "INSTEAD"]
+        elif line[0] == "check":
+            result[line_number] = [line, "CHECK"]
+        elif line[1] == "is":
+            print(line)
+            result[line_number] = [line, "ASSIGNMENT"]
         line_number += 1
     return result
 
-def translate(java_file, source_code_dict):
-    print("ENTER TRANSLATE")
+def translate(java_file, source_code_dict, indent):
+    #print("ENTER TRANSLATE")
     for line_number, (line, line_type) in source_code_dict.items():
         if line_type == "ASSIGNMENT":
+            #print("ASSIGNMENT")
             variable = line[0]
             expression = translate_expression(line[2:])
-            var_type = determine_var_type(expression)
-            java_line = f"\t\t{var_type} {variable} = {expression};\n"
+            if variable not in varList:
+                varList.append(variable)
+                var_type = determine_var_type(expression)
+                java_line = "\t"*indent + str(var_type) + " " + str(variable) + "=" + str(expression) + ";\n"
+            else:
+                java_line = "\t"*indent + str(variable) + "=" + str(expression) + ";\n"
             print(java_line)
             java_file.write(java_line)
+                            
         elif line_type == "PRINT":
+            #print("PRINT")
             expression = translate_expression(line[1:])
-            java_line = f"\t\tSystem.out.println({expression});\n"
+            java_line = "\t"*indent + "System.out.println(" + str(expression) + ");\n"
             print(java_line)
             java_file.write(java_line)
-        elif line_type == "CONDITIONAL":
-            #expression = processed conditional
-            #print("Parsing expression!!!")
-            #print(expression)
-            #print()
-            print("Conditional")
-            print(line)
-            print()
 
-            expression = translate_expression(line[1:])
-            java_line = "\t\tif (" + str(expression) + ") {" + "\n"
+        elif line_type == "CONDITIONAL":
+            #print("CONDITIONAL")
+            #print(line)
+            #print()
+
+            expression = translate_expression(line[1:line.index("do!")])
+            java_line = "\t"*indent + "if (" + str(expression) + ") {" + "\n"
             print(java_line)
             java_file.write(java_line)
 
             # call create lines on the rest
-            rest = createLines(line[len(expression)+2:])
+            rest = createLines(line[line.index("do!")+1:])
             # make a dict
             dict = typeLines(rest)
             # call translate again
-            translate(java_file, dict)
+            translate(java_file, dict, indent+1)
             # need to just make a line_type of INSTEAD and a case for it in translate
-            java_line = "}\n"
+            java_line = "\t"*indent + "}\n"
             java_file.write(java_line)
 
-# probably going to become obsolete
-def parse_conditional(line):
-    result = []
-    cur = []
-    conditional_expr = False
-    string_token = ""
-    result.append("if (")
-    for item in line:
-        # handles nested if statements
-        if item == "given":
-            result.append(parse_conditional(line[line.index(item):]))
-            break
-        # handles end of conditional expression
-        elif item == "do!":
-            # need to process the statement to see if there are multiple strung together
-            result.append(cur)
-            result.append(") {")
-            cur = []
-        elif item == "instead!":
-            result.append("} else {")
-            cur = []
-        else:
-            if item.endswith(".!"):
-                cur.append(item[:-1])
-                result.append(cur)
-            else:
-                cur.append(item)
-    result.append("}")
-    return result
+        elif line_type == "INSTEAD":
+            #print("INSTEAD")
+            #print(line)
+            #print()
+
+            java_line = "\t"*indent + "else {\n"
+            print(java_line)
+            java_file.write(java_line)
+
+            # call create lines on the rest
+            rest = createLines(line[1:])
+            # make a dict
+            dict = typeLines(rest)
+            # call translate again
+            translate(java_file, dict, indent+1)
+            # need to just make a line_type of INSTEAD and a case for it in translate
+            java_line = "\t"*indent + "}\n"
+            java_file.write(java_line)
+
+        elif line_type == "CHECK":
+            #print("CHECK")
+            #print(line)
+            #print()
+
+            expression = translate_expression(line[1:line.index("perform!")])
+            java_line = "\t"*indent + "while (" + str(expression) + ") {" + "\n"
+            print(java_line)
+            java_file.write(java_line)
+
+            # call create lines on the rest
+            rest = createLines(line[line.index("perform!")+1:])
+            print(rest)
+            # make a dict
+            dict = typeLines(rest)
+            # call translate again
+            translate(java_file, dict, indent+1)
+            java_line = "\t"*indent + "}\n"
+            java_file.write(java_line)
         
 def determine_var_type(expression):
-    print("ENTER DETERMINE VAR TYPE")
-    if expression[0] == '"' and expression[-1] == '"':
+    #print("ENTER DETERMINE VAR TYPE")
+    if expression in varList:
+        pass
+    elif expression[0] == '"' and expression[-1] == '"':
+        varList.append(expression)
         return "String"
     elif expression[0].lower() in ["t", "f"]:
+        varList.append(expression)
         return "boolean"
     elif expression[0].isdigit():
+        varList.append(expression)
         return "int"
-    else:
-        return "String"
 
 def translate_expression(tokens):
-    print("ENTER TRANSLATE EXPRESSION")
+    #print("ENTER TRANSLATE EXPRESSION")
     if len(tokens) == 1:
         return translate_value(tokens[0])
     elif len(tokens) >= 3:
@@ -231,7 +299,7 @@ def translate_expression(tokens):
         raise ValueError(f"Invalid expression: {tokens}")
 
 def translate_value(token):
-    print("ENTER TRANSLATE VALUE")
+    #print("ENTER TRANSLATE VALUE")
     if token.startswith("\"") and token.endswith("\""):
         return token
     elif token.isdigit():
@@ -246,7 +314,7 @@ def main():
     filename_full = filename + ".txt"
     file_contents = openFile(filename_full)
     contents_list = file_contents.split()
-    print("\nChecking contents")
+    #print("\nChecking contents")
     #for content in contents_list:
     #    print(content)
     #print("Done checking contents\n")
@@ -263,7 +331,7 @@ def main():
     print("AFTER CREATE LINES "+ str(source_code))
     source_code_dict = typeLines(source_code)
     java_file = startFile(filename)
-    translate(java_file, source_code_dict)
+    translate(java_file, source_code_dict, 2)
     endFile(java_file)
 
 if __name__ == "__main__":
