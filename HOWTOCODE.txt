@@ -1,0 +1,35 @@
+Hi Group 5!
+
+This is a quick intro on how to use our langauge and translator. 
+
+To write a file, you will need to write your code into a .txt file, 
+this is very important for the translator to recognize your code.
+Run the translator from the command line with "python3 translate.py"
+It will ask for the .txt filename without the expression. Once it gets
+the file, it will create a .java file with the same name as teh .txt
+file, this is the translated code. You can run the java file in an IDE
+of your choice, or in the command line with "javac file.java", and then
+"java file.java"
+
+Provided will also be c.txt and e.txt with some example code. 
+
+VARIABLE ASSIGNMENT:
+var1 is 7.
+var2 is "Hello World!".
+var3 is T.
+var4 is 7 + 4.
+var5 is var1 add 7.
+varBool is T AND F.
+
+PRINTING:
+print "Hello World".
+print 7.
+print T.
+print T OR F.
+print varBool.
+
+LOOPS:
+
+CONDITIONALS:
+
+CONSOLE INPUT:

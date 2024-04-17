@@ -35,7 +35,19 @@ public class c {
 		int var91 = var1;
 		boolean var92 = var113;
 		int var13 = var1 + var3;
+		int var43 = 13 + 7;
 		String var12 = var10 + var11;
+		boolean varT = true;
+		boolean varTF = varT && false;
+		boolean varBool = true && false;
+		varBool = true && true;
+		varTF = None;
+		varTF = None;
+		System.out.println(7);
+		System.out.println("Hello World");
+		System.out.println(7 + 7);
+		System.out.println(true);
+		System.out.println(varBool);
 		Scanner in2 = new Scanner(System.in);
 		String var73 = in2.nextLine();
 

@@ -260,6 +260,7 @@ def determine_var_type(expression, variable):
     else:
         newExpr = expression.split()
         newExpr = newExpr[0]
+        print(varDict[newExpr])
         varDict[variable] = varDict[newExpr]
         return varDict[newExpr]
 

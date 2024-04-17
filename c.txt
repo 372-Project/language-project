@@ -33,6 +33,23 @@ var90 is var11.
 var91 is var1.
 var92 is var113.
 var13 is var1 add var3.
+var43 is 13 + 7.
 var12 is var10 add var11.
+
+varT is T.
+varTF is varT AND F.
+varBool is T AND F.
+varBool is T AND T.
+
+
+varTF is varT and T.
+varTF is F and varT.
+
+
+print 7.
+print "Hello World".
+print 7 + 7.
+print T.
+print varBool.
 
 var73 is get.
