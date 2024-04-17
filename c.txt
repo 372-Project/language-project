@@ -6,6 +6,8 @@ var9 is "Hello World".%
 var1 is 5.
 var2 is 7.
 var3 is 6.
+var69 is 5+7.
+var113 is T.
 
 var70 is get.
 
@@ -27,6 +29,10 @@ loop!
 
 var10 is "Hel".
 var11 is "lo".
+var90 is var11.
+var91 is var1.
+var92 is var113.
+var13 is var1 add var3.
 var12 is var10 add var11.
 
 var73 is get.

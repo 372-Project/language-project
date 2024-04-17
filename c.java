@@ -5,6 +5,8 @@ public class c {
 		int var1 = 5;
 		int var2 = 7;
 		int var3 = 6;
+		int var69 = 5+7;
+		boolean var113 = true;
 		Scanner in1 = new Scanner(System.in);
 		String var70 = in1.nextLine();
 		if (var1 < var2) {
@@ -29,7 +31,11 @@ public class c {
 		}
 		String var10 = "Hel";
 		String var11 = "lo";
-		None var12 = var10 + var11;
+		String var90 = var11;
+		int var91 = var1;
+		boolean var92 = var113;
+		int var13 = var1 + var3;
+		String var12 = var10 + var11;
 		Scanner in2 = new Scanner(System.in);
 		String var73 = in2.nextLine();
 

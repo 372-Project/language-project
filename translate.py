@@ -244,8 +244,10 @@ def translate(java_file, source_code_dict, indent):
             java_file.write(java_line)
         
 def determine_var_type(expression, variable):
+    print(expression)
     if expression in varDict.keys():
-        pass
+        varDict[variable] = varDict[expression]
+        return varDict[expression]
     elif expression[0] == '"' and expression[-1] == '"':
         varDict[variable] = "String"
         return "String"
@@ -255,6 +257,11 @@ def determine_var_type(expression, variable):
     elif expression[0].isdigit():
         varDict[variable] = "int" 
         return "int"
+    else:
+        newExpr = expression.split()
+        newExpr = newExpr[0]
+        varDict[variable] = varDict[newExpr]
+        return varDict[newExpr]
 
 def translate_expression(tokens):
     if len(tokens) == 1:
