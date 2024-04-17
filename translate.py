@@ -1,4 +1,6 @@
-varList = []
+varDict = {}
+global needsImport
+global currentInput
 
 def openFile(filename):
     try:
@@ -28,8 +30,6 @@ def removeComments(contents):
 
 # turns into lines of code
 def createLines(input):
-    #print("CREATING LINES")
-    #print(input)
     result = []
     cur = []
     in_string = False
@@ -48,9 +48,6 @@ def createLines(input):
                 in_string = False
                 cur.append(string_token[:-1])
                 result.append(cur)
-                print()
-                print(cur)
-                print()
                 cur = []
                 string_token = ""
 
@@ -60,9 +57,6 @@ def createLines(input):
                 string_token += " " + item[:-1]  # Remove the closing period
                 cur.append(string_token)
                 result.append(cur)
-                print()
-                print(cur)
-                print()
                 cur = []
                 string_token = ""
             else:  #  Happens when there is a word in the middle of a string of words 
@@ -109,9 +103,6 @@ def createLines(input):
         else:
             if item.endswith("."):
                 cur.append(item[:-1])  # Remove the period
-                print()
-                print(cur)
-                print()
                 result.append(cur)
                 cur = []
             elif item == "loop!":
@@ -127,6 +118,7 @@ def createLines(input):
 
 # creates java class with main
 def startFile(filename):
+    global needsImport
     filename_ext = filename + ".java"
     try:
         file = open(filename_ext, 'w')
@@ -135,6 +127,10 @@ def startFile(filename):
         main_line = "\tpublic static void main(String[] args) {\n"
 
         lines = [class_line, main_line]
+        if needsImport > 0:
+            print("import")
+            import_line = "import java.util.Scanner;\n\n"
+            file.write(import_line)
 
         file.writelines(lines)
 
@@ -153,10 +149,10 @@ def endFile(file):
 
 # assigns the line to a line number, and to a line type
 def typeLines(lines):
+    global needsImport
     line_number = 0
     result = {}
     for line in lines:
-        print(line)
         if line[0] == "print":
             result[line_number] = [line, "PRINT"]
         elif line[0] == "given":
@@ -166,44 +162,43 @@ def typeLines(lines):
         elif line[0] == "check":
             result[line_number] = [line, "CHECK"]
         elif line[1] == "is":
-            print(line)
-            result[line_number] = [line, "ASSIGNMENT"]
+            if line[2] == "get":
+                needsImport += 1
+                result[line_number] = [line, "INPUT"]
+            else:
+                result[line_number] = [line, "ASSIGNMENT"]
         line_number += 1
     return result
 
 def translate(java_file, source_code_dict, indent):
-    #print("ENTER TRANSLATE")
+    global currentInput
     for line_number, (line, line_type) in source_code_dict.items():
         if line_type == "ASSIGNMENT":
-            #print("ASSIGNMENT")
             variable = line[0]
             expression = translate_expression(line[2:])
-            if variable not in varList:
-                varList.append(variable)
-                var_type = determine_var_type(expression)
-                java_line = "\t"*indent + str(var_type) + " " + str(variable) + "=" + str(expression) + ";\n"
+            # around here we need to handle if a NEW variable is being made with at least one other variable
+            # need to do type inference so its not labeled NONE
+            # EX: var = String + anything else, var is a string
+            # EX: var = int + anything besides string, var is an int
+            if variable not in varDict.keys():
+                var_type = determine_var_type(expression, variable)
+                java_line = "\t"*indent + str(var_type) + " " + str(variable) + " = " + str(expression) + ";\n"
             else:
-                java_line = "\t"*indent + str(variable) + "=" + str(expression) + ";\n"
+                java_line = "\t"*indent + str(variable) + " = " + str(expression) + ";\n"
             print(java_line)
             java_file.write(java_line)
                             
         elif line_type == "PRINT":
-            #print("PRINT")
             expression = translate_expression(line[1:])
             java_line = "\t"*indent + "System.out.println(" + str(expression) + ");\n"
             print(java_line)
             java_file.write(java_line)
 
         elif line_type == "CONDITIONAL":
-            #print("CONDITIONAL")
-            #print(line)
-            #print()
-
             expression = translate_expression(line[1:line.index("do!")])
             java_line = "\t"*indent + "if (" + str(expression) + ") {" + "\n"
             print(java_line)
             java_file.write(java_line)
-
             # call create lines on the rest
             rest = createLines(line[line.index("do!")+1:])
             # make a dict
@@ -215,14 +210,9 @@ def translate(java_file, source_code_dict, indent):
             java_file.write(java_line)
 
         elif line_type == "INSTEAD":
-            #print("INSTEAD")
-            #print(line)
-            #print()
-
             java_line = "\t"*indent + "else {\n"
             print(java_line)
             java_file.write(java_line)
-
             # call create lines on the rest
             rest = createLines(line[1:])
             # make a dict
@@ -234,18 +224,12 @@ def translate(java_file, source_code_dict, indent):
             java_file.write(java_line)
 
         elif line_type == "CHECK":
-            #print("CHECK")
-            #print(line)
-            #print()
-
             expression = translate_expression(line[1:line.index("perform!")])
             java_line = "\t"*indent + "while (" + str(expression) + ") {" + "\n"
             print(java_line)
             java_file.write(java_line)
-
             # call create lines on the rest
             rest = createLines(line[line.index("perform!")+1:])
-            print(rest)
             # make a dict
             dict = typeLines(rest)
             # call translate again
@@ -253,22 +237,26 @@ def translate(java_file, source_code_dict, indent):
             java_line = "\t"*indent + "}\n"
             java_file.write(java_line)
         
-def determine_var_type(expression):
-    #print("ENTER DETERMINE VAR TYPE")
-    if expression in varList:
+        elif line_type == "INPUT":
+            java_line = "\t"*indent + "Scanner in" + str(currentInput) + " = new Scanner(System.in);\n" + "\t"*indent + "String " + str(line[0]) + " = in" + str(currentInput) + ".nextLine();\n"
+            currentInput += 1
+            print(java_line)
+            java_file.write(java_line)
+        
+def determine_var_type(expression, variable):
+    if expression in varDict.keys():
         pass
     elif expression[0] == '"' and expression[-1] == '"':
-        varList.append(expression)
+        varDict[variable] = "String"
         return "String"
     elif expression[0].lower() in ["t", "f"]:
-        varList.append(expression)
+        varDict[variable] = "boolean"
         return "boolean"
     elif expression[0].isdigit():
-        varList.append(expression)
+        varDict[variable] = "int" 
         return "int"
 
 def translate_expression(tokens):
-    #print("ENTER TRANSLATE EXPRESSION")
     if len(tokens) == 1:
         return translate_value(tokens[0])
     elif len(tokens) >= 3:
@@ -299,7 +287,6 @@ def translate_expression(tokens):
         raise ValueError(f"Invalid expression: {tokens}")
 
 def translate_value(token):
-    #print("ENTER TRANSLATE VALUE")
     if token.startswith("\"") and token.endswith("\""):
         return token
     elif token.isdigit():
@@ -310,25 +297,21 @@ def translate_value(token):
         return token
 
 def main():
+    global needsImport
+    global currentInput
+    currentInput = 1
+    needsImport = 0
+    # input file
     filename = input("Enter the filename (txt extension): ")
     filename_full = filename + ".txt"
     file_contents = openFile(filename_full)
+    # read everything and split into words
     contents_list = file_contents.split()
-    #print("\nChecking contents")
-    #for content in contents_list:
-    #    print(content)
-    #print("Done checking contents\n")
+    # remove all comments
     source_code = removeComments(contents_list)
-    #print("AFTER COMMENTS "+ str(source_code))
-    #print("\nChecking contents")
-    #for item in source_code:
-    #    print(item)
-    #print("Done checking contents\n")
-
-
+    # create a list of lines
     source_code = createLines(source_code)
-
-    print("AFTER CREATE LINES "+ str(source_code))
+    # type each line
     source_code_dict = typeLines(source_code)
     java_file = startFile(filename)
     translate(java_file, source_code_dict, 2)

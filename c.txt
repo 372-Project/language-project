@@ -7,6 +7,8 @@ var1 is 5.
 var2 is 7.
 var3 is 6.
 
+var70 is get.
+
 given var1 lessThan var2 do! var3 is var1 add var2.!
 
 given var1 moreThan var2 do! var3 is var1 add var2. var2 is var1 add 2.! instead! print F.!
@@ -22,3 +24,9 @@ check var1 lessThan var2 perform!
 var3 is var3 add 2. 
 var1 is var1 add 1. 
 loop!
+
+var10 is "Hel".
+var11 is "lo".
+var12 is var10 add var11.
+
+var73 is get.
