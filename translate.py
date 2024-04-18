@@ -1,8 +1,10 @@
 varDict = {}
+global stack
 global needsImport
 global currentInput
 
 def openFile(filename):
+    """Open the specified file and return its contents."""
     try:
         with open(filename, 'r') as file:
             file_contents = file.read()
@@ -14,141 +16,191 @@ def openFile(filename):
         print(f"Error: Unable to open {filename}.")
         return None
 
-# removes comments from file
 def removeComments(contents):
+    """Remove comments from the file contents."""
     result = []
-    inComment = False
+    in_comment = False
 
     for item in contents:
-        if (item == "%" or item[0] == "%") and not inComment:
-            inComment = True
-        elif (item == "%" or item[-1] == "%") and inComment:
-            inComment = False
-        elif not inComment:
+        if (item == "%" or item[0] == "%") and not in_comment:
+            in_comment = True
+        elif (item == "%" or item[-1] == "%") and in_comment:
+            in_comment = False
+        elif not in_comment:
             result.append(item)
     return result
 
-# turns into lines of code
 def createLines(input):
+    """Splits the input text into a list of lines of code."""
+    global stack
     result = []
     cur = []
     in_string = False
     in_loop = False
     in_do = False
     in_instead = False
+    is_nested = 0
     string_token = ""
-
     for item in input:
+        # Handle strings
         if item[0] == '"' and not in_string:
             in_string = True
-
-            string_token = item  # Remove the opening quotation mark
-
-            if item[-2] == '"':  # Checking for single words
+            string_token = item  
+            # Checking for single words
+            if item[-2] == '"':  
                 in_string = False
                 cur.append(string_token[:-1])
                 result.append(cur)
                 cur = []
                 string_token = ""
-
-        elif in_string:  # Checking for strings that are more than one word 
+        elif in_string: 
             if item[-2] == '"':
                 in_string = False
-                string_token += " " + item[:-1]  # Remove the closing period
+                string_token += " " + item[:-1] 
                 cur.append(string_token)
                 result.append(cur)
                 cur = []
                 string_token = ""
-            else:  #  Happens when there is a word in the middle of a string of words 
-                   #  EX: "Hello good world", good would be added here
+            else: 
                 string_token += " " + item
-
-        elif item == "perform!":  # Makes it so that what is happening in a loop is not processed until later
+        # Handle loops, makes it so everything inside is not processed until a later call to createLines
+        elif item == "check" and in_loop == False: 
             in_loop = True
+            stack.append(item)
             cur.append(item)
-            
-        elif in_loop:
-            cur.append(item)
-            if item == "loop!":
-                result.append(cur)
-                cur = []
-                in_loop = False
-
-        elif item == "do!":  # Makes it so that what is happening in a do is not processed until later
+        # Determines if the current depth matches the block
+        elif in_loop and stack[-1] == "check":
+            # Handles nesting
+            if item in ["given", "check", "instead!"]:
+                if item == "given":
+                    in_do = True
+                cur.append(item)
+                stack.append(item)
+                is_nested += 1
+            # Handles either the end of the current block or a nested one
+            elif item != "perform!" and item.endswith("!"):
+                if is_nested > 0:
+                    cur.append(item)
+                    stack.pop()
+                    is_nested -= 1
+                else:
+                    cur.append(item)
+                    result.append(cur)
+                    cur = []
+                    in_loop = False
+            else:
+                cur.append(item)
+        # Handle do blocks, makes it so everything inside is not processed until a later call to createLines
+        elif item == "given" and in_do == False:
             in_do = True
+            stack.append(item)
             cur.append(item)
-            
-        elif in_do:
-            if item.endswith("!"):
-                cur.append(item[:-1])
-                result.append(cur)
-                cur = []
-                in_do = False
+        # Determines if the current depth matches the block
+        elif in_do and stack[-1] == "given":
+            # Handles nesting
+            if item in ["given", "check", "instead!"]:
+                cur.append(item)
+                stack.append(item)
+                is_nested += 1
+            # Handles either the end of the current block or a nested one
+            elif item != "do!" and item.endswith("!"):
+                if is_nested > 0:
+                    cur.append(item)
+                    stack.pop()
+                    is_nested -= 1
+                else:
+                    cur.append(item[:-1])
+                    result.append(cur)
+                    cur = []
+                    in_do = False
             else:
                 cur.append(item)
-
-        elif item == "instead!":  # Makes it so that what is happening in an instead is not processed until later
+        # Handle instead blocks, makes it so everything inside is not processed until a later call to createLines
+        elif item == "instead!" and in_instead == False: 
             in_instead = True
+            stack.append(item)
             cur.append(item)
-            
-        elif in_instead:
-            if item.endswith("!"):
+        # Determines if the current depth matches the block
+        elif in_instead and stack[-1] == "instead!":
+            # Handles nesting
+            if item in ["given", "check", "instead!"]:
+                cur.append(item)
+                is_nested += 1
+            # Handles either the end of the current block or a nested one
+            elif item.endswith("!"):
+                if is_nested > 0:
+                    cur.append(item)
+                    stack.pop()
+                    is_nested -= 1
+                else:
+                    cur.append(item[:-1])
+                    result.append(cur)
+                    cur = []
+                    in_instead = False
+            else:
+                cur.append(item)
+        # Handle anything else such as end of line, end of outer loop, etc
+        else:
+            # Drop the closing of the loop
+            if item == "loop!":
+                pass
+            # For the end of regular lines
+            elif item.endswith("."):
                 cur.append(item[:-1])
                 result.append(cur)
                 cur = []
-                in_instead = False
-            else:
-                cur.append(item)
-
-        else:
-            if item.endswith("."):
-                cur.append(item[:-1])  # Remove the period
+            # For the end of do and instead blocks
+            elif item.endswith(".!"):
+                cur.append(item[:-2]) 
                 result.append(cur)
                 cur = []
-            elif item == "loop!":
-                pass
             else:
                 cur.append(item)
 
     if cur:
         raise Exception("Error, missing closing expression '.'")
-
     return result
 
 
-# creates java class with main
 def startFile(filename):
+    """Create a new Java file with the specified filename."""
     global needsImport
     filename_ext = filename + ".java"
     try:
         file = open(filename_ext, 'w')
 
-        class_line = "public class " + filename + " {\n"
+        class_line = f"public class {filename} {{\n"
         main_line = "\tpublic static void main(String[] args) {\n"
 
         lines = [class_line, main_line]
         if needsImport > 0:
-            print("import")
             import_line = "import java.util.Scanner;\n\n"
             file.write(import_line)
 
         file.writelines(lines)
+
+        if needsImport > 0:
+            scanner_line = "\t\tScanner in = new Scanner(System.in);\n"
+            file.write(scanner_line)
 
         return file
     except (IOError, OSError) as e:
         print(f"Error creating file '{filename}': {e}")
         return None
 
-# ends the main and class
 def endFile(file):
+    """Close the Java file and write the end of the main method and class."""
+    if needsImport > 0:
+        close_line = "\n\t\tin.close();"
+        file.write(close_line)
     end_main = "\n\t}\n"
     end_class = "}\n"
     lines = [end_main, end_class]
     file.writelines(lines)
     file.close()
 
-# assigns the line to a line number, and to a line type
 def typeLines(lines):
+    """Assign a line number and line type to each line of code."""
     global needsImport
     line_number = 0
     result = {}
@@ -170,81 +222,61 @@ def typeLines(lines):
         line_number += 1
     return result
 
+
 def translate(java_file, source_code_dict, indent):
+    """Translate the source code into Java code and write it to the Java file."""
     global currentInput
+    global stack
     for line_number, (line, line_type) in source_code_dict.items():
         if line_type == "ASSIGNMENT":
             variable = line[0]
             expression = translate_expression(line[2:])
-            # around here we need to handle if a NEW variable is being made with at least one other variable
-            # need to do type inference so its not labeled NONE
-            # EX: var = String + anything else, var is a string
-            # EX: var = int + anything besides string, var is an int
             if variable not in varDict.keys():
                 var_type = determine_var_type(expression, variable)
-                java_line = "\t"*indent + str(var_type) + " " + str(variable) + " = " + str(expression) + ";\n"
+                java_line = "\t" * indent + f"{var_type} {variable} = {expression};\n"
             else:
-                java_line = "\t"*indent + str(variable) + " = " + str(expression) + ";\n"
-            print(java_line)
+                java_line = "\t" * indent + f"{variable} = {expression};\n"
             java_file.write(java_line)
-                            
         elif line_type == "PRINT":
             expression = translate_expression(line[1:])
-            java_line = "\t"*indent + "System.out.println(" + str(expression) + ");\n"
-            print(java_line)
+            java_line = "\t" * indent + f"System.out.println({expression});\n"
             java_file.write(java_line)
-
         elif line_type == "CONDITIONAL":
             expression = translate_expression(line[1:line.index("do!")])
-            java_line = "\t"*indent + "if (" + str(expression) + ") {" + "\n"
-            print(java_line)
+            java_line = "\t" * indent + f"if ({expression}) {{\n"
             java_file.write(java_line)
-            # call create lines on the rest
-            rest = createLines(line[line.index("do!")+1:])
-            # make a dict
-            dict = typeLines(rest)
-            # call translate again
-            translate(java_file, dict, indent+1)
-            # need to just make a line_type of INSTEAD and a case for it in translate
-            java_line = "\t"*indent + "}\n"
+            rest = createLines(line[line.index("do!") + 1:])
+            stack = []
+            rest_dict = typeLines(rest)
+            translate(java_file, rest_dict, indent + 1)
+            java_line = "\t" * indent + "}\n"
             java_file.write(java_line)
-
         elif line_type == "INSTEAD":
-            java_line = "\t"*indent + "else {\n"
-            print(java_line)
+            java_line = "\t" * indent + "else {\n"
             java_file.write(java_line)
-            # call create lines on the rest
             rest = createLines(line[1:])
-            # make a dict
-            dict = typeLines(rest)
-            # call translate again
-            translate(java_file, dict, indent+1)
-            # need to just make a line_type of INSTEAD and a case for it in translate
-            java_line = "\t"*indent + "}\n"
+            stack = []
+            rest_dict = typeLines(rest)
+            translate(java_file, rest_dict, indent + 1)
+            java_line = "\t" * indent + "}\n"
             java_file.write(java_line)
-
         elif line_type == "CHECK":
             expression = translate_expression(line[1:line.index("perform!")])
-            java_line = "\t"*indent + "while (" + str(expression) + ") {" + "\n"
-            print(java_line)
+            java_line = "\t" * indent + f"while ({expression}) {{\n"
             java_file.write(java_line)
-            # call create lines on the rest
-            rest = createLines(line[line.index("perform!")+1:])
-            # make a dict
-            dict = typeLines(rest)
-            # call translate again
-            translate(java_file, dict, indent+1)
-            java_line = "\t"*indent + "}\n"
+            rest = createLines(line[line.index("perform!") + 1:])
+            stack = []
+            rest_dict = typeLines(rest)
+            translate(java_file, rest_dict, indent + 1)
+            java_line = "\t" * indent + "}\n"
             java_file.write(java_line)
-        
         elif line_type == "INPUT":
-            java_line = "\t"*indent + "Scanner in" + str(currentInput) + " = new Scanner(System.in);\n" + "\t"*indent + "String " + str(line[0]) + " = in" + str(currentInput) + ".nextLine();\n"
+            java_line = "\t" * indent + f"String {line[0]} = in.nextLine();\n"
             currentInput += 1
-            print(java_line)
             java_file.write(java_line)
         
 def determine_var_type(expression, variable):
-    print(expression)
+    """Determine the data type of a variable based on the expression."""
     if expression in varDict.keys():
         varDict[variable] = varDict[expression]
         return varDict[expression]
@@ -255,47 +287,42 @@ def determine_var_type(expression, variable):
         varDict[variable] = "boolean"
         return "boolean"
     elif expression[0].isdigit():
-        varDict[variable] = "int" 
+        varDict[variable] = "int"
         return "int"
     else:
-        newExpr = expression.split()
-        newExpr = newExpr[0]
-        print(varDict[newExpr])
-        varDict[variable] = varDict[newExpr]
-        return varDict[newExpr]
+        new_expr = expression.split()[0]
+        if new_expr not in varDict or varDict[new_expr] is None:
+            raise Exception("Error, variable never initialized")
+        varDict[variable] = varDict[new_expr]
+        return varDict[new_expr]
 
 def translate_expression(tokens):
+    """Translate the expression tokens into a Java expression."""
     if len(tokens) == 1:
         return translate_value(tokens[0])
     elif len(tokens) >= 3:
-        operator = tokens[1]
+        operator = tokens[1].upper()
         left_operand = translate_value(tokens[0])
         right_operand = translate_expression(tokens[2:])
-        if operator in ["add", "+"]:
-            return f"{left_operand} + {right_operand}"
-        elif operator in ["sub", "-"]:
-            return f"{left_operand} - {right_operand}"
-        elif operator in ["mult", "*"]:
-            return f"{left_operand} * {right_operand}"
-        elif operator in ["div", "/"]:
-            return f"{left_operand} / {right_operand}"
-        elif operator in ["mod", "%"]:
-            return f"{left_operand} % {right_operand}"
-        elif operator in ["AND", "OR"]:
-            if operator == "AND":
-                return str(left_operand)+ " && " +str(right_operand)
-            else:
-                return str(left_operand)+ " || " +str(right_operand)
-        elif operator in ("moreThan", "lessThan"):
-            if operator == "moreThan":
-                return str(left_operand)+ " > " +str(right_operand)
-            else:
-                return str(left_operand)+ " < " +str(right_operand) 
+        operations = {
+            "ADD": "+", "+": "+",
+            "SUB": "-", "-": "-",
+            "MULT": "*", "*": "*",
+            "DIV": "/", "/": "/",
+            "MOD": "%", "%": "%",
+            "AND": "&&", "OR": "||",
+            "MORETHAN": ">", "LESSTHAN": "<"
+        }
+        if operator in operations:
+            return f"{left_operand} {operations[operator]} {right_operand}"
+        else:
+            raise ValueError(f"Invalid operator: {operator}")
     else:
         raise ValueError(f"Invalid expression: {tokens}")
 
 def translate_value(token):
-    if token.startswith("\"") and token.endswith("\""):
+    """Translate the token into a Java value."""
+    if token.startswith('"') and token.endswith('"'):
         return token
     elif token.isdigit():
         return token
@@ -307,6 +334,8 @@ def translate_value(token):
 def main():
     global needsImport
     global currentInput
+    global stack
+    stack = []
     currentInput = 1
     needsImport = 0
     # input file
@@ -319,6 +348,8 @@ def main():
     source_code = removeComments(contents_list)
     # create a list of lines
     source_code = createLines(source_code)
+    # reset the stack
+    stack = []
     # type each line
     source_code_dict = typeLines(source_code)
     java_file = startFile(filename)

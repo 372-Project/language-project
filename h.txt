@@ -1,0 +1,16 @@
+var1 is 5.
+var2 is 3.
+var3 is 7.
+var5 is 10.
+
+
+given var1 moreThan var2 do! 
+    given var5 lessThan var2 do! 
+        given var1 moreThan var2 do! 
+            var3 is 5.! 
+        var3 is var1 add var2.! 
+    var3 is var1 add var2. 
+    var2 is var1 add 2.! 
+instead! 
+    print F.!
+

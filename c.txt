@@ -1,7 +1,7 @@
 
 
-%var6 is "Goodbye".
-var9 is "Hello World".%
+var6 is "Goodbye".
+var9 is "Hello World".
 
 var1 is 5.
 var2 is 7.
@@ -11,20 +11,52 @@ var113 is T.
 
 var70 is get.
 
-given var1 lessThan var2 do! var3 is var1 add var2.!
+given var1 lessThan var2 do! 
+    var3 is var1 add var2.!
 
-given var1 moreThan var2 do! var3 is var1 add var2. var2 is var1 add 2.! instead! print F.!
+given var1 moreThan var2 do! 
+    given var1 lessThan var2 do! 
+        var3 is var1 add var2.! 
+        var3 is var1 add var2. 
+        var2 is var1 add 2.! 
+    instead! 
+        print F.!
 
 % loops can look like this %
-check var1 lessThan var2 perform! var3 is var3 add 2. var1 is var1 add 1. loop!
+check var1 lessThan var2 perform! 
+    var69 is var69 add 5. 
+    check var1 lessThan var2 perform! 
+        check var1 lessThan var2 perform! 
+            given var1 lessThan var2 do! 
+                check var1 moreThan var2 perform!
+                    print var69.
+                loop!
+                var3 is var1 add var2.!
+        loop! 
+        var3 is var3 add 2. 
+        var1 is var1 add 1. 
+    loop! 
+    var69 is var69 add 6. 
+loop!
 
 var1 is 3.
 var2 is 8.
 
-% or like this %
 check var1 lessThan var2 perform! 
 var3 is var3 add 2. 
 var1 is var1 add 1. 
+loop!
+
+check var1 lessThan var2 perform! 
+    var69 is var69 add 5. 
+    check var1 lessThan var2 perform! 
+        check var1 lessThan var2 perform! 
+            var3 is var1 add var2.
+        loop! 
+        var3 is var3 add 2. 
+        var1 is var1 add 1. 
+    loop! 
+    var69 is var69 add 6. 
 loop!
 
 var10 is "Hel".
@@ -41,10 +73,8 @@ varTF is varT AND F.
 varBool is T AND F.
 varBool is T AND T.
 
-
 varTF is varT and T.
 varTF is F and varT.
-
 
 print 7.
 print "Hello World".
