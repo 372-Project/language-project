@@ -43,119 +43,122 @@ def createLines(input):
     string_token = ""
     for item in input:
         # Handle strings
-        if item[0] == '"' and not in_string:
-            in_string = True
-            string_token = item  
-            # Checking for single words
-            if item[-2] == '"':  
-                in_string = False
-                cur.append(string_token[:-1])
-                result.append(cur)
-                cur = []
-                string_token = ""
-        elif in_string: 
-            if item[-2] == '"':
-                in_string = False
-                string_token += " " + item[:-1] 
-                cur.append(string_token)
-                result.append(cur)
-                cur = []
-                string_token = ""
-            else: 
-                string_token += " " + item
-        # Handle loops, makes it so everything inside is not processed until a later call to createLines
-        elif item == "check" and in_loop == False: 
-            in_loop = True
-            stack.append(item)
-            cur.append(item)
-        # Determines if the current depth matches the block
-        elif in_loop and stack[-1] == "check":
-            # Handles nesting
-            if item in ["given", "check", "instead!"]:
-                if item == "given":
-                    in_do = True
-                cur.append(item)
-                stack.append(item)
-                is_nested += 1
-            # Handles either the end of the current block or a nested one
-            elif item != "perform!" and item.endswith("!"):
-                if is_nested > 0:
-                    cur.append(item)
-                    stack.pop()
-                    is_nested -= 1
-                else:
-                    cur.append(item)
+        try:
+            if item[0] == '"' and not in_string:
+                in_string = True
+                string_token = item
+                # Checking for single words
+                if item[-2] == '"':
+                    in_string = False
+                    cur.append(string_token[:-1])
                     result.append(cur)
                     cur = []
-                    in_loop = False
-            else:
-                cur.append(item)
-        # Handle do blocks, makes it so everything inside is not processed until a later call to createLines
-        elif item == "given" and in_do == False:
-            in_do = True
-            stack.append(item)
-            cur.append(item)
-        # Determines if the current depth matches the block
-        elif in_do and stack[-1] == "given":
-            # Handles nesting
-            if item in ["given", "check", "instead!"]:
-                cur.append(item)
-                stack.append(item)
-                is_nested += 1
-            # Handles either the end of the current block or a nested one
-            elif item != "do!" and item.endswith("!"):
-                if is_nested > 0:
-                    cur.append(item)
-                    stack.pop()
-                    is_nested -= 1
+                    string_token = ""
+            elif in_string:
+                if item[-2] == '"':
+                    in_string = False
+                    string_token += " " + item[:-1]
+                    cur.append(string_token)
+                    result.append(cur)
+                    cur = []
+                    string_token = ""
                 else:
+                    string_token += " " + item
+            # Handle loops, makes it so everything inside is not processed until a later call to createLines
+            elif item == "check" and in_loop == False:
+                in_loop = True
+                stack.append(item)
+                cur.append(item)
+            # Determines if the current depth matches the block
+            elif in_loop and stack[-1] == "check":
+                # Handles nesting
+                if item in ["given", "check", "instead!"]:
+                    if item == "given":
+                        in_do = True
+                    cur.append(item)
+                    stack.append(item)
+                    is_nested += 1
+                # Handles either the end of the current block or a nested one
+                elif item != "perform!" and item.endswith("!"):
+                    if is_nested > 0:
+                        cur.append(item)
+                        stack.pop()
+                        is_nested -= 1
+                    else:
+                        cur.append(item)
+                        result.append(cur)
+                        cur = []
+                        in_loop = False
+                else:
+                    cur.append(item)
+            # Handle do blocks, makes it so everything inside is not processed until a later call to createLines
+            elif item == "given" and in_do == False:
+                in_do = True
+                stack.append(item)
+                cur.append(item)
+            # Determines if the current depth matches the block
+            elif in_do and stack[-1] == "given":
+                # Handles nesting
+                if item in ["given", "check", "instead!"]:
+                    cur.append(item)
+                    stack.append(item)
+                    is_nested += 1
+                # Handles either the end of the current block or a nested one
+                elif item != "do!" and item.endswith("!"):
+                    if is_nested > 0:
+                        cur.append(item)
+                        stack.pop()
+                        is_nested -= 1
+                    else:
+                        cur.append(item[:-1])
+                        result.append(cur)
+                        cur = []
+                        in_do = False
+                else:
+                    cur.append(item)
+            # Handle instead blocks, makes it so everything inside is not processed until a later call to createLines
+            elif item == "instead!" and in_instead == False:
+                in_instead = True
+                stack.append(item)
+                cur.append(item)
+            # Determines if the current depth matches the block
+            elif in_instead and stack[-1] == "instead!":
+                # Handles nesting
+                if item in ["given", "check", "instead!"]:
+                    cur.append(item)
+                    is_nested += 1
+                # Handles either the end of the current block or a nested one
+                elif item.endswith("!"):
+                    if is_nested > 0:
+                        cur.append(item)
+                        stack.pop()
+                        is_nested -= 1
+                    else:
+                        cur.append(item[:-1])
+                        result.append(cur)
+                        cur = []
+                        in_instead = False
+                else:
+                    cur.append(item)
+            # Handle anything else such as end of line, end of outer loop, etc
+            else:
+                # Drop the closing of the loop
+                if item == "loop!":
+                    pass
+                # For the end of regular lines
+                elif item.endswith("."):
                     cur.append(item[:-1])
                     result.append(cur)
                     cur = []
-                    in_do = False
-            else:
-                cur.append(item)
-        # Handle instead blocks, makes it so everything inside is not processed until a later call to createLines
-        elif item == "instead!" and in_instead == False: 
-            in_instead = True
-            stack.append(item)
-            cur.append(item)
-        # Determines if the current depth matches the block
-        elif in_instead and stack[-1] == "instead!":
-            # Handles nesting
-            if item in ["given", "check", "instead!"]:
-                cur.append(item)
-                is_nested += 1
-            # Handles either the end of the current block or a nested one
-            elif item.endswith("!"):
-                if is_nested > 0:
-                    cur.append(item)
-                    stack.pop()
-                    is_nested -= 1
-                else:
-                    cur.append(item[:-1])
+                # For the end of do and instead blocks
+                elif item.endswith(".!"):
+                    cur.append(item[:-2])
                     result.append(cur)
                     cur = []
-                    in_instead = False
-            else:
-                cur.append(item)
-        # Handle anything else such as end of line, end of outer loop, etc
-        else:
-            # Drop the closing of the loop
-            if item == "loop!":
-                pass
-            # For the end of regular lines
-            elif item.endswith("."):
-                cur.append(item[:-1])
-                result.append(cur)
-                cur = []
-            # For the end of do and instead blocks
-            elif item.endswith(".!"):
-                cur.append(item[:-2]) 
-                result.append(cur)
-                cur = []
-            else:
-                cur.append(item)
+                else:
+                    cur.append(item)
+        except:
+            raise Exception("Syntax Error for line: "+str(item))
 
     if cur:
         raise Exception("Error, missing closing expression '.'")
@@ -300,6 +303,16 @@ def translate_expression(tokens):
     """Translate the expression tokens into a Java expression."""
     if len(tokens) == 1:
         return translate_value(tokens[0])
+    elif len(tokens) == 2:
+        operator = tokens[0].upper()
+        operand = translate_value(tokens[1])
+        operations = {
+            "NOT": "!"
+        }
+        if operator in operations:
+            return f"{operations[operator]} {operand}"
+        else:
+            raise ValueError(f"Invalid operator: {operator}")
     elif len(tokens) >= 3:
         operator = tokens[1].upper()
         left_operand = translate_value(tokens[0])
