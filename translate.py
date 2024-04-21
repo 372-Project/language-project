@@ -286,7 +286,7 @@ def determine_var_type(expression, variable):
     elif expression[0] == '"' and expression[-1] == '"':
         varDict[variable] = "String"
         return "String"
-    elif expression[0].lower() in ["t", "f"]:
+    elif expression[0].lower() in ["f", "t"] or expression[0] == '!':
         varDict[variable] = "boolean"
         return "boolean"
     elif expression[0].isdigit():
@@ -303,35 +303,33 @@ def translate_expression(tokens):
     """Translate the expression tokens into a Java expression."""
     if len(tokens) == 1:
         return translate_value(tokens[0])
-    elif len(tokens) == 2:
+    else:
         operator = tokens[0].upper()
-        operand = translate_value(tokens[1])
         operations = {
             "NOT": "!"
         }
         if operator in operations:
+            operand = translate_expression(tokens[1:])
             return f"{operations[operator]} {operand}"
+        elif len(tokens) >= 3:
+            operator = tokens[1].upper()
+            left_operand = translate_value(tokens[0])
+            right_operand = translate_expression(tokens[2:])
+            operations = {
+                "ADD": "+", "+": "+",
+                "SUB": "-", "-": "-",
+                "MULT": "*", "*": "*",
+                "DIV": "/", "/": "/",
+                "MOD": "%", "%": "%",
+                "AND": "&&", "OR": "||",
+                "MORETHAN": ">", "LESSTHAN": "<"
+            }
+            if operator in operations:
+                return f"{left_operand} {operations[operator]} {right_operand}"
+            else:
+                raise ValueError(f"Invalid operator: {operator}")
         else:
-            raise ValueError(f"Invalid operator: {operator}")
-    elif len(tokens) >= 3:
-        operator = tokens[1].upper()
-        left_operand = translate_value(tokens[0])
-        right_operand = translate_expression(tokens[2:])
-        operations = {
-            "ADD": "+", "+": "+",
-            "SUB": "-", "-": "-",
-            "MULT": "*", "*": "*",
-            "DIV": "/", "/": "/",
-            "MOD": "%", "%": "%",
-            "AND": "&&", "OR": "||",
-            "MORETHAN": ">", "LESSTHAN": "<"
-        }
-        if operator in operations:
-            return f"{left_operand} {operations[operator]} {right_operand}"
-        else:
-            raise ValueError(f"Invalid operator: {operator}")
-    else:
-        raise ValueError(f"Invalid expression: {tokens}")
+            raise ValueError(f"Invalid expression: {tokens}")
 
 def translate_value(token):
     """Translate the token into a Java value."""

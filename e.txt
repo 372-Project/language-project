@@ -3,9 +3,9 @@
 var6 is "Goodbye".
 var9 is "Hello World".
 
-var2 is T AND NOT F.
-var3 is 13 add 7.
-var4 is 19.
+var2 is NOT T AND F.
+var3 is 13 add 7 add 4.
+var4 is var3 + 19.
 var5 is F.
 
 
