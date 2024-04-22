@@ -284,7 +284,7 @@ def translate(java_file, source_code_dict, indent):
             java_line = "\t" * indent + f"String {line[0]}s = in.nextLine();\n"
             currentInput += 1
             java_file.write(java_line)
-            java_line = "\t" * indent + f"Int {line[0]} = Integer.parseInt({line[0]}s);\n"
+            java_line = "\t" * indent + f"int {line[0]} = Integer.parseInt({line[0]}s);\n"
             java_file.write(java_line)
         
 def determine_var_type(expression, variable):

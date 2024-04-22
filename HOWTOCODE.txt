@@ -32,4 +32,5 @@ LOOPS:
 
 CONDITIONALS:
 
-CONSOLE INPUT:
+CONSOLE INPUT: (Assign get to a var, var will contain the line input)
+var73 is get.

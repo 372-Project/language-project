@@ -1,0 +1,7 @@
+var73 is getnum.
+
+var14 is 14.
+
+var13 is var14 add var73.
+
+print var13.

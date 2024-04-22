@@ -77,6 +77,7 @@ public class c {
 		System.out.println(true);
 		System.out.println(varBool);
 		String var73 = in.nextLine();
+		System.out.println(var73);
 
 		in.close();
 	}
