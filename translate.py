@@ -220,6 +220,9 @@ def typeLines(lines):
             if line[2] == "get":
                 needsImport += 1
                 result[line_number] = [line, "INPUT"]
+            elif line[2] == "getnum":
+                needsImport += 1
+                result[line_number] = [line, "NUMINPUT"]
             else:
                 result[line_number] = [line, "ASSIGNMENT"]
         line_number += 1
@@ -276,6 +279,12 @@ def translate(java_file, source_code_dict, indent):
         elif line_type == "INPUT":
             java_line = "\t" * indent + f"String {line[0]} = in.nextLine();\n"
             currentInput += 1
+            java_file.write(java_line)
+        elif line_type == "NUMINPUT":
+            java_line = "\t" * indent + f"String {line[0]}s = in.nextLine();\n"
+            currentInput += 1
+            java_file.write(java_line)
+            java_line = "\t" * indent + f"Int {line[0]} = Integer.parseInt({line[0]}s);\n"
             java_file.write(java_line)
         
 def determine_var_type(expression, variable):
