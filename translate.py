@@ -245,7 +245,7 @@ def translate(java_file, source_code_dict, indent):
             java_file.write(java_line)
         elif line_type == "PRINT":
             expression = translate_expression(line[1:])
-            java_line = "\t" * indent + f"System.out.println({expression});\n"
+            java_line = "\t" * indent + f"System.out.print({expression});\n"
             java_file.write(java_line)
         elif line_type == "CONDITIONAL":
             expression = translate_expression(line[1:line.index("do!")])
@@ -280,12 +280,16 @@ def translate(java_file, source_code_dict, indent):
             java_line = "\t" * indent + f"String {line[0]} = in.nextLine();\n"
             currentInput += 1
             java_file.write(java_line)
+            varDict[line[0]] = "String"
         elif line_type == "NUMINPUT":
+
+            varDict[line[0]] = "int"        
             java_line = "\t" * indent + f"String {line[0]}s = in.nextLine();\n"
             currentInput += 1
             java_file.write(java_line)
             java_line = "\t" * indent + f"int {line[0]} = Integer.parseInt({line[0]}s);\n"
             java_file.write(java_line)
+
         
 def determine_var_type(expression, variable):
     """Determine the data type of a variable based on the expression."""
@@ -331,7 +335,8 @@ def translate_expression(tokens):
                 "DIV": "/", "/": "/",
                 "MOD": "%", "%": "%",
                 "AND": "&&", "OR": "||",
-                "MORETHAN": ">", "LESSTHAN": "<"
+                "MORETHAN": ">", "LESSTHAN": "<",
+                "EQUALS" : "==", "NOTEQUALS" : "!="
             }
             if operator in operations:
                 return f"{left_operand} {operations[operator]} {right_operand}"

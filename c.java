@@ -22,7 +22,7 @@ public class c {
 			var2 = var1 + 2;
 		}
 		else {
-			System.out.println(false);
+			System.out.print(false);
 		}
 		while (var1 < var2) {
 			var69 = var69 + 5;
@@ -30,7 +30,7 @@ public class c {
 				while (var1 < var2) {
 					if (var1 < var2) {
 						while (var1 > var2) {
-							System.out.println(var69);
+							System.out.print(var69);
 						}
 					}
 					var3 = var1 + var2;
@@ -71,13 +71,13 @@ public class c {
 		varBool = true && true;
 		varTF = varT && true;
 		varTF = false && varT;
-		System.out.println(7);
-		System.out.println("Hello World");
-		System.out.println(7 + 7);
-		System.out.println(true);
-		System.out.println(varBool);
+		System.out.print(7);
+		System.out.print("Hello World");
+		System.out.print(7 + 7);
+		System.out.print(true);
+		System.out.print(varBool);
 		String var73 = in.nextLine();
-		System.out.println(var73);
+		System.out.print(var73);
 
 		in.close();
 	}
