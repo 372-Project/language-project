@@ -47,9 +47,6 @@ def createLines(input):
     in_function = False
     is_nested = 0
     string_token = ""
-    print("INPUT")
-    print(input)
-    print()
     for item in input:
         try:
             # Handle functions
@@ -73,8 +70,6 @@ def createLines(input):
                 # Checking for single words
                 if item[-2] == '"':
                     in_string = False
-                    print(stack)
-                    print(cur)
                     if len(stack) == 0:
                         cur.append(string_token[:-1])
                         result.append(cur)
@@ -101,8 +96,6 @@ def createLines(input):
             elif item == "check" and in_loop == False:
                 in_loop = True
                 stack.append(item)
-                print("Added " + item + " to the stack")
-                print(stack)
                 cur.append(item)
             # Determines if the current depth matches the block
             elif in_loop and len(stack) > 0 and stack[-1] == "check":
@@ -112,29 +105,17 @@ def createLines(input):
                         in_do = True
                     cur.append(item)
                     stack.append(item)
-                    print("Added " + item + " to the stack")
-                    print(stack)
                     is_nested += 1
                 # Handles either the end of the current block or a nested one
                 elif item != "perform!" and item.endswith("!"):
-                    # the error is coming from inside this if else block, if there is a
-                    # while-if_while block the loop! from the second while will end up in the else
-                    # causing the if statement to be ended prematurely.
                     if is_nested > 0 or len(stack) > 1:
                         cur.append(item)
-                        print("\n\n")
-                        print(item)
-                        print("\n\n")
-                        print("Popped: " + stack.pop())
-                        print(stack)
+                        stack.pop()
                         is_nested -= 1
                     else:
                         cur.append(item)
                         result.append(cur)
-                        print("Popped: " + stack.pop())
-                        print("Last item: " + item)
-                        print("Stack size: " + str(len(stack)))
-                        print(stack)
+                        stack.pop()
                         cur = []
                         in_loop = False
                 else:
@@ -143,8 +124,6 @@ def createLines(input):
             elif item == "given" and in_do == False:
                 in_do = True
                 stack.append(item)
-                print("Added " + item + " to the stack")
-                print(stack)
                 cur.append(item)
             # Determines if the current depth matches the block
             elif in_do and len(stack) > 0 and stack[-1] == "given":
@@ -152,23 +131,17 @@ def createLines(input):
                 if item in ["given", "check", "instead!"]:
                     cur.append(item)
                     stack.append(item)
-                    print("Added " + item + " to the stack")
-                    print(stack)
                     is_nested += 1
                 # Handles either the end of the current block or a nested one
                 elif item != "do!" and item.endswith("!"):
                     if is_nested > 0 or len(stack) > 1:
                         cur.append(item)
-                        print("Popped: " + stack.pop())
-                        print("Last item: " + item)
-                        print(stack)
+                        stack.pop()
                         is_nested -= 1
                     else:
                         cur.append(item[:-1])
                         result.append(cur)
-                        print("Popped: " + stack.pop())
-                        print("Last item: " + item)
-                        print(stack)
+                        stack.pop()
                         cur = []
                         in_do = False
                 else:
@@ -177,8 +150,6 @@ def createLines(input):
             elif item == "instead!" and in_instead == False:
                 in_instead = True
                 stack.append(item)
-                print("Added " + item + " to the stack")
-                print(stack)
                 cur.append(item)
             # Determines if the current depth matches the block
             elif in_instead and len(stack) > 0 and stack[-1] == "instead!":
@@ -190,14 +161,12 @@ def createLines(input):
                 elif item.endswith("!"):
                     if is_nested > 0 or len(stack) > 1:
                         cur.append(item)
-                        print("Popped: " + stack.pop())
-                        print(stack)
+                        stack.pop()
                         is_nested -= 1
                     else:
                         cur.append(item[:-1])
                         result.append(cur)
-                        print("Popped: " + stack.pop())
-                        print(stack)
+                        stack.pop()
                         cur = []
                         in_instead = False
                 else:
@@ -224,9 +193,6 @@ def createLines(input):
 
     if cur:
         raise Exception("Error, missing closing expression '.'")
-    print("\nRESULT")
-    print(result)
-    print()
     return result
 
 
@@ -303,7 +269,6 @@ def translate(block_type, source_code_dict, indent):
     global stack
     global varDict
     for line_number, (line, line_type) in source_code_dict.items():
-        #print(line)
         if line_type == "ASSIGNMENT":
             variable = line[0]
             expression = translate_expression(line[2:])
@@ -333,15 +298,8 @@ def translate(block_type, source_code_dict, indent):
             elif block_type == "function":
                 complete_functions.append(java_line)
             rest = createLines(line[line.index("do!") + 1:])
-            print(line)
-            print("REST")
-            print(rest)
-            print()
             stack = []
             rest_dict = typeLines(rest)
-            print("PLEASE")
-            print(rest_dict)
-            print()
             translate(block_type, rest_dict, indent + 1)
             java_line = "\t" * indent + "}\n"
             if block_type == "regular":
@@ -468,13 +426,10 @@ def determine_var_type(expression, variable):
 
 def translate_expression(tokens):
     """Translate the expression tokens into a Java expression."""
-    #print(tokens)
-    #print(len(tokens))
     if len(tokens) == 1:
         return translate_value(tokens[0])
     else:
         operator = tokens[0].upper()
-        #print(operator)
         operations = {
             "NOT": "!"
         }
@@ -545,11 +500,6 @@ def main():
             for line in complete_functions:
                 java_code.insert(i, line)
                 i+=1
-    #for key in source_code_dict.keys():
-        #print(source_code_dict[key])
-    print()
-    print(source_code_dict)
-    print()
     translate("regular", source_code_dict, 2)
     endFile(java_file)
     java_file.writelines(java_code)

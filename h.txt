@@ -10,3 +10,7 @@ instead!
     max is b.!
 
 c is a + b.
+
+given a lessThan b do!
+    var5 is "hello".
+    print 5.!

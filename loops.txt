@@ -1,0 +1,11 @@
+% This file is an example of the different formats and uses of loop %
+
+% This is the basic format of loops %
+
+var1 is 0.
+var2 is 10.
+check var1 lessThan var2 perform!
+    print var1.
+    print "\n".
+    var1 is var1 add 1.
+loop!

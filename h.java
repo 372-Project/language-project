@@ -1,5 +1,6 @@
 import java.util.Scanner;
 
+
 public class h {
 	public static void main(String[] args) {
 		Scanner in = new Scanner(System.in);
@@ -16,6 +17,10 @@ public class h {
 			max = b;
 		}
 		int c = a + b;
+		if (a < b) {
+			String var5 = "hello";
+			System.out.print(5);
+		}
 
 		in.close();
 	}

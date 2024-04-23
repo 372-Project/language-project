@@ -1,5 +1,6 @@
 import java.util.Scanner;
 
+
 public class c {
 	public static void main(String[] args) {
 		Scanner in = new Scanner(System.in);
@@ -32,8 +33,8 @@ public class c {
 						while (var1 > var2) {
 							System.out.print(var69);
 						}
+						var3 = var1 + var2;
 					}
-					var3 = var1 + var2;
 				}
 				var3 = var3 + 2;
 				var1 = var1 + 1;
