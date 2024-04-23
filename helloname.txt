@@ -1,0 +1,11 @@
+% This is a file of a basic hell file %
+
+print "Please enter your name\n".
+
+name is get.
+begin is "Hello ".
+ending is "!! Thanks for using our language!"\n.
+
+output is begin add name add ending.
+
+print output.
