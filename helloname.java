@@ -7,7 +7,7 @@ public class helloname {
 		System.out.print("Please enter your name\n");
 		String name = in.nextLine();
 		String begin = "Hello ";
-		String ending = "!! Thanks for using our language!";
+		String ending = "!! Thanks for using our language!\n";
 		String output = begin + name + ending;
 		System.out.print(output);
 
