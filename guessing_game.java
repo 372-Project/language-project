@@ -6,7 +6,7 @@ public class guessing_game {
 		Scanner in = new Scanner(System.in);
 		System.out.print("Enter your name\n");
 		String name = in.nextLine();
-		System.out.print("Hi, " + name + "lets play a guessing game!\n");
+		System.out.print("Hi, " + name + " lets play a guessing game!\n");
 		int theNumber = 74;
 		System.out.print("Guess a number between 1 and 100\n");
 		int guessed = 0;
