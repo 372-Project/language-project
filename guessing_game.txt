@@ -1,0 +1,26 @@
+% This program is a game where the user will guess a number
+given that we do not have random number functionality it 
+will just be a predetermined number %
+
+theNumber is 74.
+
+print "Guess a number between 1 and 100\n".
+
+
+guessed is 0.
+check guessed equals 0 perform! 
+    userIn is getnum.
+
+    given userIn lessThan theNumber do! 
+        print "Number too low, try again!\n".!
+
+    given userIn moreThan theNumber do! 
+        print "Number too high, try again!\n".!
+
+    given userIn equals theNumber do! 
+        guessed is 1.
+        print "You got it! The number is 74!\n".!
+
+loop! 
+
+
