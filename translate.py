@@ -147,6 +147,8 @@ def typeLines(lines):
             result[line_number] = [line, "FUNCTION"]
         elif line[0] == "send":
             result[line_number] = [line, "SEND"]
+        elif line[0] == "function!":
+            result[line_number] = [line, "CALL"]
         elif line[1] == "is":
             if line[2] == "get":
                 needsImport += 1
@@ -263,19 +265,20 @@ def translate(block_type, source_code_dict, indent):
         elif line_type == "FUNCTION":
             if line[3] == "number":
                 var_type = "int"
-                varDict["input"] = "int"
             elif line[3] == "word":
                 var_type = "String"
-                varDict["input"] = "String"
             else:
                 var_type = "void"
 
-            if line[5] == "number":
+            if line[5] == "number!":
                 input = "int input"
-            elif line[5] == "word":
+                input_type = "int"
+            elif line[5] == "word!":
                 input = "String input"
+                input_type = "String"
             else:
                 input = ""
+                input_type = ""
             functions[line[1]] = var_type
             temp = indent-1
             java_line = "\t" * temp + "public static " + str(var_type) + " "+ str(line[1]) + "(" + str(input) + "){\n"
@@ -283,6 +286,7 @@ def translate(block_type, source_code_dict, indent):
             rest = createLines(line[6:])
             saveVariable = varDict
             varDict = {}
+            varDict["input"] = input_type
             stack = []
             rest_dict = typeLines(rest)
             block_type = "function"
@@ -292,10 +296,14 @@ def translate(block_type, source_code_dict, indent):
             varDict = saveVariable
 
         elif line_type == "CALL":
-            if line[3] not in functions.keys():
-                raise Exception("Error, call to function '" + line[3] + "' that does not exist")
-            function_type = functions[line[3]]
-            java_line = "\t" * indent + function_type + " " + line[0] + " = " + line[3] + "(" + line[4] + ");\n"
+            # void function call
+            if len(line) == 3:
+                java_line = "\t" * indent +  line[1] + "(" + line[2] + ");\n"
+            else:
+                if line[3] not in functions.keys():
+                    raise Exception("Error, call to function '" + line[3] + "' that does not exist")
+                function_type = functions[line[3]]
+                java_line = "\t" * indent + function_type + " " + line[0] + " = " + line[3] + "(" + line[4] + ");\n"
             if block_type == "regular":
                 java_code.append(java_line)
             elif block_type == "function":
@@ -321,8 +329,6 @@ def translate(block_type, source_code_dict, indent):
         
 def determine_var_type(expression, variable):
     """Determine the data type of a variable based on the expression."""
-    print(expression)
-    print(variable)
     if expression in varDict.keys():
         varDict[variable] = varDict[expression]
         return varDict[expression]
@@ -448,7 +454,6 @@ def main():
             varDict = {}
             complete_functions.append("\n")
             function_dict = typeLines(function_lines)
-            print(function_dict)
             translate("functions", function_dict, 2)
             i = 1
             for line in complete_functions:

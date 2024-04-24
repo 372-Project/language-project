@@ -1,8 +1,31 @@
-varTest is 5.
-varResult is function! square varTest.
-
 %function "name" sends "type (number, word, nothing)" using "input type (number, word, nothing)"%
+
+num is 5.
+squared is function! square num.
+print num + " squared is: " + squared + "\n".
+
+cubed is function! cube num.
+print num + " cubed is: " + cubed + "\n".
+
+n1 is 1.
+n2 is 2.
+function! even_or_odd n1.
+function! even_or_odd n2.
+
 function square sends number using number!
     var is input mult input.
     send var.
+end!
+
+function cube sends number using number!
+    cubed is input mult input mult input.
+    send cubed.
+end!
+
+function even_or_odd sends nothing using number!
+    result is input mod 2.
+    given result equals 0 do!
+        print input + " is odd\n".!
+    instead!
+        print input + " is even\n".!
 end!
