@@ -9,3 +9,61 @@ check var1 lessThan var2 perform!
     print "\n".
     var1 is var1 add 1.
 loop!
+print "\n".
+
+% They can also look like this as whitespace does not matter %
+
+check var1 moreThan 0 perform! print var1. print "\n". var1 is var1 sub 1. loop!
+
+
+% Loops can be nested as well %
+% For loops do not exist so the setup can get a little tedious %
+print "\nPyramid\n".
+rows is 5.
+i is 0.
+check i lessThan rows perform!
+    j is 0.
+    difference is rows sub i.
+    check j lessThan difference perform!
+        print " ".
+        j is j add 1.
+    loop!
+
+    j is 0.
+    size is 2 mult i.
+    size is size sub 1.
+    check j lessThan size perform!
+        print "X".
+        j is j add 1.
+    loop!
+
+    i is i add 1.
+    print "\n".
+loop!
+print "\n".
+
+% Another example of nested loops %
+a is 0. 
+check a lessThan 3 perform!
+    print "Outer loop ".
+    print a.
+    print "\n".
+
+    b is 0.
+    check b lessThan 3 perform!
+        print "Inner loop ".
+        print b.
+        print "\n".
+
+        given a lessThan b do!
+            print "a is less than b\n".!
+        c is 0.
+        check c lessThan 2 perform!
+            print "Innermost loop\n".
+            c is c add 1.
+        loop!
+        b is b add 1.
+    loop!
+    a is a add 1.
+loop!
+            

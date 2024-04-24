@@ -41,160 +41,43 @@ def createLines(input):
     result = []
     cur = []
     in_string = False
-    in_loop = False
-    in_do = False
-    in_instead = False
-    in_function = False
-    is_nested = 0
     string_token = ""
     for item in input:
         try:
-            # Handle functions
-            if item == "function":
-                in_function = True
+            # Handle blocks and nesting
+            if item in ["function", "check", "given", "instead!"]:
+                stack.append(item)
                 cur.append(item)
-            elif in_function:
-                if item == "end!":
-                    cur.append(item)
-                    function_lines.append(cur)
-                    cur = []
-                    in_function = False
-                elif cur[-1] == "using":
+            # Handle block terminators
+            elif item.endswith("!"):
+                if len(stack) == 1 and item[:-1] not in ["perform", "do", "instead"]:
                     cur.append(item[:-1])
+                    result.append(cur)
+                    cur = []
+                    stack.pop()
+                elif len(stack) > 1 and item[:-1] not in ["perform", "do", "instead"]:
+                    cur.append(item)
+                    stack.pop()
                 else:
                     cur.append(item)
-            # Handle strings
-            elif item[0] == '"' and not in_string:
-                in_string = True
-                string_token = item
-                # Checking for single words
-                if item[-2] == '"':
-                    in_string = False
-                    if len(stack) == 0:
-                        cur.append(string_token[:-1])
-                        result.append(cur)
-                        cur = []
-                    else:
-                        cur.append(string_token)
-                    string_token = ""
-            elif in_string:
-                if item[-2] == '"':
-                    in_string = False
-                    
-                    if len(stack) == 0:
-                        string_token += " " + item[:-1]
-                        cur.append(string_token)
-                        result.append(cur)
-                        cur = []
-                    else:
-                        string_token += " " + item
-                        cur.append(string_token)
-                    string_token = ""
-                else:
-                    string_token += " " + item
-            # Handle loops, makes it so everything inside is not processed until a later call to createLines
-            elif item == "check" and in_loop == False:
-                in_loop = True
-                stack.append(item)
-                cur.append(item)
-            # Determines if the current depth matches the block
-            elif in_loop and len(stack) > 0 and stack[-1] == "check":
-                # Handles nesting
-                if item in ["given", "check", "instead!"]:
-                    if item == "given":
-                        in_do = True
-                    cur.append(item)
-                    stack.append(item)
-                    is_nested += 1
-                # Handles either the end of the current block or a nested one
-                elif item != "perform!" and item.endswith("!"):
-                    if is_nested > 0 or len(stack) > 1:
-                        cur.append(item)
-                        stack.pop()
-                        is_nested -= 1
-                    else:
-                        cur.append(item)
-                        result.append(cur)
-                        stack.pop()
-                        cur = []
-                        in_loop = False
+            # Handle end of lines
+            elif item.endswith("."):
+                if len(stack) == 0:
+                    cur.append(item[:-1])
+                    result.append(cur)
+                    cur = []
                 else:
                     cur.append(item)
-            # Handle do blocks, makes it so everything inside is not processed until a later call to createLines
-            elif item == "given" and in_do == False:
-                in_do = True
-                stack.append(item)
-                cur.append(item)
-            # Determines if the current depth matches the block
-            elif in_do and len(stack) > 0 and stack[-1] == "given":
-                # Handles nesting
-                if item in ["given", "check", "instead!"]:
-                    cur.append(item)
-                    stack.append(item)
-                    is_nested += 1
-                # Handles either the end of the current block or a nested one
-                elif item != "do!" and item.endswith("!"):
-                    if is_nested > 0 or len(stack) > 1:
-                        cur.append(item)
-                        stack.pop()
-                        is_nested -= 1
-                    else:
-                        cur.append(item[:-1])
-                        result.append(cur)
-                        stack.pop()
-                        cur = []
-                        in_do = False
-                else:
-                    cur.append(item)
-            # Handle instead blocks, makes it so everything inside is not processed until a later call to createLines
-            elif item == "instead!" and in_instead == False:
-                in_instead = True
-                stack.append(item)
-                cur.append(item)
-            # Determines if the current depth matches the block
-            elif in_instead and len(stack) > 0 and stack[-1] == "instead!":
-                # Handles nesting
-                if item in ["given", "check", "instead!"]:
-                    cur.append(item)
-                    is_nested += 1
-                # Handles either the end of the current block or a nested one
-                elif item.endswith("!"):
-                    if is_nested > 0 or len(stack) > 1:
-                        cur.append(item)
-                        stack.pop()
-                        is_nested -= 1
-                    else:
-                        cur.append(item[:-1])
-                        result.append(cur)
-                        stack.pop()
-                        cur = []
-                        in_instead = False
-                else:
-                    cur.append(item)
-            # Handle anything else such as end of line, end of outer loop, etc
             else:
-                # Drop the closing of the loop
-                if item in ["loop!", "end!"]:
-                    pass
-                # For the end of regular lines
-                elif item.endswith("."):
-                    cur.append(item[:-1])
-                    result.append(cur)
-                    cur = []
-                # For the end of do and instead blocks
-                elif item.endswith(".!"):
-                    cur.append(item[:-2])
-                    result.append(cur)
-                    cur = []
-                else:
-                    cur.append(item)
+                cur.append(item)
         except:
-            raise Exception("Syntax Error for line: "+str(item))
-
+            raise Exception("Syntax Error for line: " + str(item))
     if cur:
         raise Exception("Error, missing closing expression '.'")
+    
+    if stack:
+        raise Exception("Error, unclosed block")
     return result
-
 
 def startFile(filename):
     """Create a new Java file with the specified filename."""
@@ -480,7 +363,43 @@ def main():
     filename_full = filename + ".txt"
     file_contents = openFile(filename_full)
     # read everything and split into words
-    contents_list = file_contents.split()
+    contents_list = []
+    in_string = False
+    string_token = ""
+    skip_char = False
+    i = 0
+    for char in file_contents:
+        if skip_char:
+            skip_char = False
+            pass
+        elif char == '"' and not in_string:
+            in_string = True
+            string_token = char
+        elif in_string:
+            string_token += char
+            if char == '"':
+                in_string = False
+                if string_token.endswith('.') or string_token.endswith('.!'):
+                    contents_list.append(string_token)
+                    string_token = ""
+        elif char.isspace() and not in_string:
+            if string_token:
+                contents_list.append(string_token)
+                string_token = ""
+        elif char in ['.', '!'] and not in_string:
+            string_token += char
+            if i < len(file_contents)-1 and file_contents[i+1] == '!':
+                string_token += '!'
+                skip_char = True
+            contents_list.append(string_token)
+            string_token = ""
+        else:
+            string_token += char
+        i+=1
+    
+    if string_token:
+        contents_list.append(string_token)
+
     # remove all comments
     source_code = removeComments(contents_list)
     # create a list of lines

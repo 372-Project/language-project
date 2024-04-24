@@ -1,0 +1,34 @@
+var6 is "Goodbye".
+var9 is "Hello World".
+
+var1 is 5.
+var2 is 7.
+var3 is 6.
+var69 is 5+7.
+var113 is T.
+
+%given var1 lessThan var2 do! 
+    var3 is var1 add var2.!%
+
+given var1 moreThan var2 do! 
+    given var1 lessThan var2 do! 
+        var3 is var1 add var2.!
+    var5 is var1 add var2. 
+    var2 is var1 add 2.! 
+
+
+check var1 lessThan var2 perform! 
+    var69 is var69 add 5. 
+    check var1 lessThan var2 perform! 
+        check var1 lessThan var2 perform! 
+            given var1 lessThan var2 do! 
+                check var1 moreThan var2 perform!
+                    print var69.
+                loop!
+                var3 is var1 add var2.!
+        loop! 
+        var3 is var3 add 2. 
+        var1 is var1 add 1. 
+    loop! 
+    var69 is var69 add 6. 
+loop!
