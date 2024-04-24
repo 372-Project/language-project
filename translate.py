@@ -151,11 +151,16 @@ def translate(block_type, source_code_dict, indent):
     global currentInput
     global stack
     global varDict
+    bool_list = {"MORETHAN": ">", "LESSTHAN": "<",
+                "EQUALS": "==", "NOTEQUALS": "!="}
     for line_number, (line, line_type) in source_code_dict.items():
         if line_type == "ASSIGNMENT":
             variable = line[0]
             expression = translate_expression(line[2:])
-            if variable not in varDict.keys():
+            if line[3].upper() in bool_list:
+                var_type = "boolean"
+                java_line = "\t" * indent + f"{var_type} {variable} = {expression};\n"
+            elif variable not in varDict.keys():
                 var_type = determine_var_type(expression, variable)
                 java_line = "\t" * indent + f"{var_type} {variable} = {expression};\n"
             else:
@@ -324,9 +329,9 @@ def translate_expression(tokens):
             left_operand = translate_value(tokens[0])
             right_operand = translate_expression(tokens[2:])
             operations = {
-                "ADD": "+", "+": "+",
-                "SUB": "-", "-": "-",
-                "MULT": "*", "*": "*",
+                "ADD": "+", "PLUS": "+", "+": "+",
+                "SUB": "-", "MINUS": "-", "-": "-",
+                "MULT": "*", "TIMES": "*", "*": "*",
                 "DIV": "/", "/": "/",
                 "MOD": "%",
                 "AND": "&&", "OR": "||",
