@@ -2,6 +2,11 @@
 given that we do not have random number functionality it 
 will just be a predetermined number %
 
+print "Enter your name\n"
+name is gets.
+
+print "Hi, " add name add "lets play a guessing game!\n".
+
 theNumber is 74.
 
 print "Guess a number between 1 and 100\n".

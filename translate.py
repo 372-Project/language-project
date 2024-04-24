@@ -143,7 +143,7 @@ def typeLines(lines):
                 result[line_number] = [line, "NUMINPUT"]
             elif line[2] == "function!":
                 result[line_number] = [line, "CALL"]
-            elif len(line) > 3 and line[3] in bool_list.keys:
+            elif len(line) > 3 and line[3] in bool_list.keys():
                 result[line_number] = [line, "BOOLASSIGN"]
             else:
                 result[line_number] = [line, "ASSIGNMENT"]
