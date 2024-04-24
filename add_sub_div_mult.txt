@@ -1,10 +1,13 @@
+% This program will take two numbers from the user, and perform the chosen operation
+on the two numbers %
+
 print "Enter the first number\n".
 numberOne is getnum.
 
 print "Enter the second number\n".
 numberTwo is getnum.
 
-print "enter the stuff\n".
+print "Enter 1 for addition, 2 for subtraction, 3 for division,\n4 for multiplication, or 5 for modulus\n".
 operation is getnum.
 
 result is 0.
@@ -29,3 +32,7 @@ given operation equals 4 do!
     print result.
     print "\n".!
 
+given operation equals 5 do!
+    result is numberOne MOD numberTwo.
+    print result.
+    print "\n".!
