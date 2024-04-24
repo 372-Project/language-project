@@ -3,7 +3,6 @@ functions = {}
 function_lines = []
 complete_functions = []
 java_code = []
-hasFunctions = False
 global stack
 global needsImport
 global currentInput
@@ -41,11 +40,10 @@ def createLines(input):
     result = []
     cur = []
     in_function = False
-    string_token = ""
     for item in input:
         try:
+            # Handle blocks for functions
             if item == "function":
-                hasFunctions = True
                 in_function = True
                 cur.append(item)
             elif in_function:
@@ -98,7 +96,7 @@ def startFile(filename):
     filename_ext = filename + ".java"
     try:
         file = open(filename_ext, 'w')
-
+        # Add an import at the top if a scanner is needed
         if needsImport > 0:
             import_line = "import java.util.Scanner;\n\n"
             java_code.append(import_line)
@@ -107,7 +105,7 @@ def startFile(filename):
         main_line = "\tpublic static void main(String[] args) {\n"
         java_code.append(class_line)
         java_code.append(main_line)
-
+        # Just make one scanner and make repeat calls to it
         if needsImport > 0:
             scanner_line = "\t\tScanner in = new Scanner(System.in);\n"
             java_code.append(scanner_line)
@@ -174,11 +172,14 @@ def translate(block_type, source_code_dict, indent):
         if line_type == "ASSIGNMENT":
             variable = line[0]
             expression = translate_expression(line[2:])
+            # Handles new variables
             if variable not in varDict.keys():
                 var_type = determine_var_type(expression, variable)
                 java_line = "\t" * indent + f"{var_type} {variable} = {expression};\n"
+            # Handles existing variables           
             else:
                 java_line = "\t" * indent + f"{variable} = {expression};\n"
+            # Handles if the line is in main or a function
             if block_type == "regular":
                 java_code.append(java_line)
             elif block_type == "function":
@@ -193,6 +194,7 @@ def translate(block_type, source_code_dict, indent):
                 java_line = "\t" * indent + f"{var_type} {variable} = {expression};\n"
             else:
                 java_line = "\t" * indent + f"{variable} = {expression};\n"
+            # Handles if the line is in main or a function
             if block_type == "regular":
                 java_code.append(java_line)
             elif block_type == "function":
@@ -201,6 +203,7 @@ def translate(block_type, source_code_dict, indent):
         elif line_type == "PRINT":
             expression = translate_expression(line[1:])
             java_line = "\t" * indent + f"System.out.print({expression});\n"
+            # Handles if the line is in main or a function
             if block_type == "regular":
                 java_code.append(java_line)
             elif block_type == "function":
@@ -209,6 +212,7 @@ def translate(block_type, source_code_dict, indent):
         elif line_type == "CONDITIONAL":
             expression = translate_expression(line[1:line.index("do!")])
             java_line = "\t" * indent + f"if ({expression}) {{\n"
+            # Handles if the line is in main or a function
             if block_type == "regular":
                 java_code.append(java_line)
             elif block_type == "function":
@@ -218,6 +222,7 @@ def translate(block_type, source_code_dict, indent):
             rest_dict = typeLines(rest)
             translate(block_type, rest_dict, indent + 1)
             java_line = "\t" * indent + "}\n"
+            # Handles if the line is in main or a function
             if block_type == "regular":
                 java_code.append(java_line)
             elif block_type == "function":
@@ -225,6 +230,7 @@ def translate(block_type, source_code_dict, indent):
 
         elif line_type == "INSTEAD":
             java_line = "\t" * indent + "else {\n"
+            # Handles if the line is in main or a function
             if block_type == "regular":
                 java_code.append(java_line)
             elif block_type == "function":
@@ -234,6 +240,7 @@ def translate(block_type, source_code_dict, indent):
             rest_dict = typeLines(rest)
             translate(block_type, rest_dict, indent + 1)
             java_line = "\t" * indent + "}\n"
+            # Handles if the line is in main or a function
             if block_type == "regular":
                 java_code.append(java_line)
             elif block_type == "function":
@@ -242,6 +249,7 @@ def translate(block_type, source_code_dict, indent):
         elif line_type == "CHECK":
             expression = translate_expression(line[1:line.index("perform!")])
             java_line = "\t" * indent + f"while ({expression}) {{\n"
+            # Handles if the line is in main or a function
             if block_type == "regular":
                 java_code.append(java_line)
             elif block_type == "function":
@@ -251,6 +259,7 @@ def translate(block_type, source_code_dict, indent):
             rest_dict = typeLines(rest)
             translate(block_type, rest_dict, indent + 1)
             java_line = "\t" * indent + "}\n"
+            # Handles if the line is in main or a function
             if block_type == "regular":
                 java_code.append(java_line)
             elif block_type == "function":
@@ -392,18 +401,7 @@ def translate_value(token):
     else:
         return token
 
-def main():
-    global needsImport
-    global currentInput
-    global stack
-    stack = []
-    currentInput = 1
-    needsImport = 0
-    # input file
-    filename = input("Enter the filename (txt extension): ")
-    filename_full = filename + ".txt"
-    file_contents = openFile(filename_full)
-    # read everything and split into words
+def handle_strings(file_contents):
     contents_list = []
     in_string = False
     string_token = ""
@@ -440,16 +438,31 @@ def main():
     
     if string_token:
         contents_list.append(string_token)
-    # remove all comments
-    source_code = removeComments(contents_list)
-    # create a list of lines
-    source_code = createLines(source_code)
-    # reset the stack
+    return contents_list
+
+def main():
+    global needsImport
+    global currentInput
+    global stack
     stack = []
-    # type each line
+    currentInput = 1
+    needsImport = 0
+    # Input file
+    filename = input("Enter the filename (txt extension): ")
+    filename_full = filename + ".txt"
+    file_contents = openFile(filename_full)
+    # Read everything and split into words
+    contents_list = handle_strings(file_contents)
+    # Remove all comments
+    source_code = removeComments(contents_list)
+    # Create a list of lines
+    source_code = createLines(source_code)
+    # Reset the stack
+    stack = []
+    # Type each line
     source_code_dict = typeLines(source_code)
     java_file = startFile(filename)
-    # will now process the lines, if there are any
+    # Will now process the function lines, if there are any
     if function_lines != None:
             varDict = {}
             complete_functions.append("\n")
