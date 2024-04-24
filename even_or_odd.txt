@@ -1,0 +1,76 @@
+print "Enter in 10 numbers.\n".
+
+one is getnum.
+two is getnum.
+three is getnum.
+four is getnum.
+five is getnum.
+six is getnum.
+seven is getnum.
+eight is getnum.
+nine is getnum.
+ten is getnum.
+
+print "10 numbers detected, performing even or odd checks!\n".
+
+print "10 numbers are: " add one add " " add two add " " add three add " " add four add " " add five add " " add six add " " add seven
+add " " add eight add " " add nine add " " add ten add "\n".
+
+evens is "Evens: ".
+odds is "Odds: ".
+
+given one mod 2 equals 0 do!
+    evens is evens add one add " ".!
+instead!
+    odds is odds add one add " ".!
+
+given two mod 2 equals 0 do!
+    evens is evens add two add " ".!
+instead!
+    odds is odds add two add " ".!
+
+given three mod 2 equals 0 do!
+    evens is evens add three add " ".!
+instead!
+    odds is odds add three add " ".!
+
+given four mod 2 equals 0 do!
+    evens is evens add four add " ".!
+instead!
+    odds is odds add four add " ".!
+
+given five mod 2 equals 0 do!
+    evens is evens add five add " ".!
+instead!
+    odds is odds add five add " ".!
+
+given six mod 2 equals 0 do!
+    evens is evens add six add " ".!
+instead!
+    odds is odds add six add " ".!
+
+given seven mod 2 equals 0 do!
+    evens is evens add seven add " ".!
+instead!
+    odds is odds add seven add " ".!
+
+given eight mod 2 equals 0 do!
+    evens is evens add eight add " ".!
+instead!
+    odds is odds add eight add " ".!
+
+given nine mod 2 equals 0 do!
+    evens is evens add nine add " ".!
+instead!
+    odds is odds add nine add " ".!
+
+given ten mod 2 equals 0 do!
+    evens is evens add ten add " ".!
+instead!
+    odds is odds add ten add " ".!
+
+evens is evens add "\n".
+odds is odds add "\n".
+
+print evens.
+print odds.
