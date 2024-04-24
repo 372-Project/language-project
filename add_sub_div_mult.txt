@@ -1,0 +1,31 @@
+print "Enter the first number\n".
+numberOne is getnum.
+
+print "Enter the second number\n".
+numberTwo is getnum.
+
+print "enter the stuff\n".
+operation is getnum.
+
+result is 0.
+given operation equals 1 do!
+    result is numberOne ADD numberTwo.
+    print result.
+    print "\n".!
+
+given operation equals 2 do!
+    result is numberOne SUB numberTwo.
+    print result.
+    print "\n".!
+
+given operation equals 3 do!
+    result is numberOne DIV numberTwo.
+    print result.
+    print "\n".!
+
+
+given operation equals 4 do!
+    result is numberOne MULT numberTwo.
+    print result.
+    print "\n".!
+
