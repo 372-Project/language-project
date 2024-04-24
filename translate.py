@@ -40,12 +40,23 @@ def createLines(input):
     global stack
     result = []
     cur = []
-    in_string = False
+    in_function = False
     string_token = ""
     for item in input:
         try:
+            if item == "function":
+                hasFunctions = True
+                in_function = True
+                cur.append(item)
+            elif in_function:
+                if item == "end!":
+                    cur.append(item)
+                    function_lines.append(cur)
+                    cur = []
+                else:
+                    cur.append(item)
             # Handle blocks and nesting
-            if item in ["function", "check", "given", "instead!"]:
+            elif item in ["check", "given", "instead!"]:
                 stack.append(item)
                 cur.append(item)
             # Handle block terminators
@@ -58,6 +69,8 @@ def createLines(input):
                 elif len(stack) > 1 and item[:-1] not in ["perform", "do", "instead"]:
                     cur.append(item)
                     stack.pop()
+                elif item == "end!":
+                    pass
                 else:
                     cur.append(item)
             # Handle end of lines
@@ -250,8 +263,10 @@ def translate(block_type, source_code_dict, indent):
         elif line_type == "FUNCTION":
             if line[3] == "number":
                 var_type = "int"
+                varDict["input"] = "int"
             elif line[3] == "word":
                 var_type = "String"
+                varDict["input"] = "String"
             else:
                 var_type = "void"
 
@@ -306,6 +321,8 @@ def translate(block_type, source_code_dict, indent):
         
 def determine_var_type(expression, variable):
     """Determine the data type of a variable based on the expression."""
+    print(expression)
+    print(variable)
     if expression in varDict.keys():
         varDict[variable] = varDict[expression]
         return varDict[expression]
@@ -417,7 +434,6 @@ def main():
     
     if string_token:
         contents_list.append(string_token)
-
     # remove all comments
     source_code = removeComments(contents_list)
     # create a list of lines
@@ -432,6 +448,7 @@ def main():
             varDict = {}
             complete_functions.append("\n")
             function_dict = typeLines(function_lines)
+            print(function_dict)
             translate("functions", function_dict, 2)
             i = 1
             for line in complete_functions:
