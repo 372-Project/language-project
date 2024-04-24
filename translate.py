@@ -119,6 +119,8 @@ def typeLines(lines):
     global needsImport
     line_number = 0
     result = {}
+    bool_list = {"MORETHAN": ">", "LESSTHAN": "<",
+                "EQUALS": "==", "NOTEQUALS": "!="}
     for line in lines:
         if line[0] == "print":
             result[line_number] = [line, "PRINT"]
@@ -141,6 +143,8 @@ def typeLines(lines):
                 result[line_number] = [line, "NUMINPUT"]
             elif line[2] == "function!":
                 result[line_number] = [line, "CALL"]
+            elif len(line) > 3 and line[3] in bool_list.keys:
+                result[line_number] = [line, "BOOLASSIGN"]
             else:
                 result[line_number] = [line, "ASSIGNMENT"]
         line_number += 1
@@ -151,16 +155,11 @@ def translate(block_type, source_code_dict, indent):
     global currentInput
     global stack
     global varDict
-    bool_list = {"MORETHAN": ">", "LESSTHAN": "<",
-                "EQUALS": "==", "NOTEQUALS": "!="}
     for line_number, (line, line_type) in source_code_dict.items():
         if line_type == "ASSIGNMENT":
             variable = line[0]
             expression = translate_expression(line[2:])
-            if line[3].upper() in bool_list:
-                var_type = "boolean"
-                java_line = "\t" * indent + f"{var_type} {variable} = {expression};\n"
-            elif variable not in varDict.keys():
+            if variable not in varDict.keys():
                 var_type = determine_var_type(expression, variable)
                 java_line = "\t" * indent + f"{var_type} {variable} = {expression};\n"
             else:
@@ -169,7 +168,21 @@ def translate(block_type, source_code_dict, indent):
                 java_code.append(java_line)
             elif block_type == "function":
                 complete_functions.append(java_line)
-                
+
+        elif line_type == "BOOLASSIGN":
+            variable = line[0]
+            expression = translate_expression(line[2:])
+            if variable not in varDict.keys():
+                varDict[variable] = "boolean"
+                var_type = determine_var_type(expression, variable)
+                java_line = "\t" * indent + f"{var_type} {variable} = {expression};\n"
+            else:
+                java_line = "\t" * indent + f"{variable} = {expression};\n"
+            if block_type == "regular":
+                java_code.append(java_line)
+            elif block_type == "function":
+                complete_functions.append(java_line)
+
         elif line_type == "PRINT":
             expression = translate_expression(line[1:])
             java_line = "\t" * indent + f"System.out.print({expression});\n"
