@@ -2,8 +2,8 @@
 given that we do not have random number functionality it 
 will just be a predetermined number %
 
-print "Enter your name\n"
-name is gets.
+print "Enter your name\n".
+name is get.
 
 print "Hi, " add name add "lets play a guessing game!\n".
 
