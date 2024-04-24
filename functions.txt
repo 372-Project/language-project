@@ -1,0 +1,5 @@
+%function "name" sends "type (number, word, nothing)" using "input type (number, word, nothing)"%
+function square sends number using number!
+    var is input mult input.
+    send var.
+end!
